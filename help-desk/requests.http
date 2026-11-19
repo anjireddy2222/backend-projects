@@ -1,0 +1,124 @@
+@base = http://localhost:8083
+@customerToken = paste-customer-accessToken-here
+@adminToken = paste-admin-accessToken-here
+@agentToken = paste-agent-accessToken-here
+@ticketId = 1
+@agentId = 2
+@resetToken = paste-token-from-Mailpit-here
+
+### Register a customer
+POST {{base}}/api/auth/register
+Content-Type: application/json
+
+{"name":"Student One","email":"customer@example.test","password":"Customer123!"}
+
+### Login as customer; copy accessToken into customerToken
+POST {{base}}/api/auth/login
+Content-Type: application/json
+
+{"email":"customer@example.test","password":"Customer123!"}
+
+### View current user
+GET {{base}}/api/auth/me
+Authorization: Bearer {{customerToken}}
+
+### Create ticket; copy response id into ticketId
+POST {{base}}/api/tickets
+Authorization: Bearer {{customerToken}}
+Content-Type: application/json
+
+{"title":"Cannot log in","description":"I cannot sign in after changing my email.","priority":"HIGH","category":"ACCOUNT"}
+
+### Edit ticket while OPEN
+PUT {{base}}/api/tickets/{{ticketId}}
+Authorization: Bearer {{customerToken}}
+Content-Type: application/json
+
+{"title":"Cannot log in","description":"Login fails on both phone and laptop.","priority":"HIGH","category":"ACCOUNT"}
+
+### Search own tickets; remove filters to see all visible tickets
+GET {{base}}/api/tickets?q=login&status=OPEN&priority=HIGH&category=ACCOUNT&page=0&size=10&sortBy=createdAt&direction=desc
+Authorization: Bearer {{customerToken}}
+
+### Login as demo admin; use your configured password, copy accessToken
+POST {{base}}/api/auth/login
+Content-Type: application/json
+
+{"email":"admin@example.test","password":"AdminDemo123!"}
+
+### List agents; copy desired id into agentId
+GET {{base}}/api/admin/agents
+Authorization: Bearer {{adminToken}}
+
+### Admin assigns the ticket
+PATCH {{base}}/api/tickets/{{ticketId}}/assignment
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"agentId":{{agentId}}}
+
+### Login as demo agent; use your configured password, copy accessToken
+POST {{base}}/api/auth/login
+Content-Type: application/json
+
+{"email":"agent@example.test","password":"AgentDemo123!"}
+
+### View assigned tickets
+GET {{base}}/api/tickets
+Authorization: Bearer {{agentToken}}
+
+### Agent starts work
+PATCH {{base}}/api/tickets/{{ticketId}}/status
+Authorization: Bearer {{agentToken}}
+Content-Type: application/json
+
+{"status":"IN_PROGRESS"}
+
+### Agent adds comment
+POST {{base}}/api/tickets/{{ticketId}}/comments
+Authorization: Bearer {{agentToken}}
+Content-Type: application/json
+
+{"message":"Investigating the email change now."}
+
+### Agent resolves ticket
+PATCH {{base}}/api/tickets/{{ticketId}}/status
+Authorization: Bearer {{agentToken}}
+Content-Type: application/json
+
+{"status":"RESOLVED"}
+
+### Customer closes resolved ticket
+PATCH {{base}}/api/tickets/{{ticketId}}/status
+Authorization: Bearer {{customerToken}}
+Content-Type: application/json
+
+{"status":"CLOSED"}
+
+### View ticket
+GET {{base}}/api/tickets/{{ticketId}}
+Authorization: Bearer {{customerToken}}
+
+### View comments
+GET {{base}}/api/tickets/{{ticketId}}/comments
+Authorization: Bearer {{customerToken}}
+
+### View status/assignment history
+GET {{base}}/api/tickets/{{ticketId}}/history
+Authorization: Bearer {{customerToken}}
+
+### Admin tracks progress by status
+GET {{base}}/api/tickets?status=CLOSED&page=0&size=10&sortBy=updatedAt&direction=desc
+Authorization: Bearer {{adminToken}}
+
+### Forgot password; open http://localhost:8025 to read reset email
+POST {{base}}/api/auth/forgot-password
+Content-Type: application/json
+
+{"email":"customer@example.test"}
+
+### Reset password; update the login request after this
+POST {{base}}/api/auth/reset-password
+Content-Type: application/json
+
+{"token":"{{resetToken}}","password":"Changed123!"}

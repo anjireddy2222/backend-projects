@@ -1,0 +1,104 @@
+@catalog = http://localhost:8081
+@customer = http://localhost:8082
+@token = paste-customer-accessToken-here
+@itemId = 1
+@addressId = 1
+@resetToken = paste-token-from-Mailpit-here
+
+### Browse/search products (demo profile seeds products)
+GET {{catalog}}/api/products?q=mouse&category=Electronics&page=0&size=10
+
+### View product detail; use an ID from the browse response
+GET {{catalog}}/api/products/1
+
+### Register (use a new email if repeating the lesson)
+POST {{customer}}/api/auth/register
+Content-Type: application/json
+
+{"name":"Student One","email":"student@example.test","password":"Student123!"}
+
+### Login, then paste accessToken into the token variable above
+POST {{customer}}/api/auth/login
+Content-Type: application/json
+
+{"email":"student@example.test","password":"Student123!"}
+
+### Current user
+GET {{customer}}/api/auth/me
+Authorization: Bearer {{token}}
+
+### Add product; copy the response id into itemId
+POST {{customer}}/api/cart/items
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"productId":1,"quantity":2}
+
+### View cart total (two sample mice = 1198.00)
+GET {{customer}}/api/cart
+Authorization: Bearer {{token}}
+
+### Replace quantity
+PUT {{customer}}/api/cart/items/{{itemId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"quantity":1}
+
+### Remove cart item
+DELETE {{customer}}/api/cart/items/{{itemId}}
+Authorization: Bearer {{token}}
+
+### Add address; copy response id into addressId
+POST {{customer}}/api/addresses
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "recipient":"Student One",
+  "phone":"9876543210",
+  "line1":"10 Main Road",
+  "city":"Chennai",
+  "state":"Tamil Nadu",
+  "postalCode":"600001",
+  "country":"India"
+}
+
+### List addresses
+GET {{customer}}/api/addresses
+Authorization: Bearer {{token}}
+
+### View address
+GET {{customer}}/api/addresses/{{addressId}}
+Authorization: Bearer {{token}}
+
+### Update address (send all required fields)
+PUT {{customer}}/api/addresses/{{addressId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "recipient":"Student One",
+  "phone":"9876543210",
+  "line1":"20 College Road",
+  "city":"Madurai",
+  "state":"Tamil Nadu",
+  "postalCode":"625001",
+  "country":"India"
+}
+
+### Delete address
+DELETE {{customer}}/api/addresses/{{addressId}}
+Authorization: Bearer {{token}}
+
+### Request reset, then open http://localhost:8025 and copy emailed token
+POST {{customer}}/api/auth/forgot-password
+Content-Type: application/json
+
+{"email":"student@example.test"}
+
+### Reset password (one-time token); update the login request after this
+POST {{customer}}/api/auth/reset-password
+Content-Type: application/json
+
+{"token":"{{resetToken}}","password":"Changed123!"}
